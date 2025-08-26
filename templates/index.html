@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NFL Team Info</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .team-info { margin-top: 20px; }
+        img { max-width: 150px; max-height: 150px; }
+    </style>
+</head>
+<body>
+    <h1>Select an NFL Team</h1>
+    <select id="teamDropdown">
+        <option value="">-- Select a team --</option>
+    </select>
+    <div class="team-info" id="teamInfo" style="display:none">
+        <h2 id="teamName"></h2>
+        <p><strong>Division:</strong> <span id="teamDivision"></span></p>
+        <p><strong>Abbreviation:</strong> <span id="teamAbbr"></span></p>
+        <img id="teamLogo" src="" alt="Team Logo" />
+    </div>
+    <script>
+    // Helper to parse CSV
+    function parseCSV(data) {
+        const lines = data.trim().split('\n');
+        const headers = lines[0].split(',');
+        return lines.slice(1).map(line => {
+            const values = line.split(',');
+            let obj = {};
+            headers.forEach((h, i) => obj[h.trim()] = values[i].trim());
+            return obj;
+        });
+    }
+
+    fetch('../team_data.csv')
+        .then(response => response.text())
+        .then(text => {
+            const teams = parseCSV(text);
+            const dropdown = document.getElementById('teamDropdown');
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.team_name;
+                option.textContent = team.team_name;
+                dropdown.appendChild(option);
+            });
+            dropdown.addEventListener('change', function() {
+                const selected = this.value;
+                const info = teams.find(t => t.team_name === selected);
+                if (info) {
+                    document.getElementById('teamInfo').style.display = '';
+                    document.getElementById('teamName').textContent = info.team_name;
+                    document.getElementById('teamDivision').textContent = info.team_division;
+                    document.getElementById('teamAbbr').textContent = info.team_abbr;
+                    document.getElementById('teamLogo').src = info.team_logo_espn;
+                    document.getElementById('teamLogo').alt = info.team_name + ' logo';
+                } else {
+                    document.getElementById('teamInfo').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
